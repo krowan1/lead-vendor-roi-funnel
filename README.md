@@ -13,7 +13,7 @@
 | Intake | Real-world lead data, reframed as a multi-vendor acquisition funnel |
 | Evaluation | A logistic regression lead-scoring model (held-out AUC 0.805) — which leads get advanced |
 | KPIs | Vendor-level conversion rate, cost-per-acquisition, ROI multiple, bundling economics — via SQL |
-| Statistical rigor | Linear regression (R) on revenue-per-lead, reported honestly including its limits |
+| Statistical rigor | Linear regression (R) on revenue-per-lead — **R² = 0.202**, reported honestly including its limits |
 | Executive view | A Sankey diagram: vendor → scored/advanced → converted |
 
 ## Key findings (from this run)
@@ -32,6 +32,8 @@
 - **Northbridge Mktg is currently a net loss** — 0.67x ROI means every dollar spent returns 67 cents. Cutting or renegotiating this vendor is the single highest-leverage move available.
 - **Fieldstone List is the volume vendor** — lowest conversion rate but largest volume and still solidly profitable (4.3x); it's the right vendor to keep for scale, not for quality.
 - The naive "cheapest-2 bundle" simulation (Apex + Fieldstone) returns **5.2x ROI** — better than either mid-tier vendor alone, which is the actual argument for how to build a bundle: pair a high-quality, low-volume vendor with a cheap, high-volume one rather than bundling on price alone.
+
+**Regression check (R):** a linear model of revenue-per-lead against intake-time attributes returns **R² = 0.202** (adjusted 0.201, n=41,188). That's a modest but real result for individual-level marketing outcomes — most of the variance in whether one specific lead converts is noise a model can't capture, and a much higher R² here would actually be a red flag (overfitting or leakage). The more useful read is the coefficients: `lead_score` itself is by far the strongest predictor (t = 52.4), which cross-validates the Python scoring model against an independent method — the two approaches agree. `previous` (prior contact count), `cons_conf_idx`, and `euribor3m` are also significant, giving three concrete, non-vendor levers for improving lead quality upstream, not just picking better vendors.
 
 ## What I'd do next as the analytics lead
 

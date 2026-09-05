@@ -1,0 +1,37 @@
+Revenue-per-lead regression summary
+R-squared: 0.2016 | Adjusted R-squared: 0.2013 | N: 41188
+
+
+Call:
+lm(formula = revenue_realized ~ age + campaign + previous + emp_var_rate + 
+    cons_price_idx + cons_conf_idx + euribor3m + nr_employed + 
+    lead_score + vendor, data = df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-492.05  -54.30  -31.48  -12.49  704.19 
+
+Coefficients:
+                                   Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                       316.37016  664.57386   0.476   0.6340    
+age                                 0.17453    0.08632   2.022   0.0432 *  
+campaign                            1.90508    0.33222   5.734 9.86e-09 ***
+previous                           25.05489    2.18619  11.461  < 2e-16 ***
+emp_var_rate                       -3.53968    3.36638  -1.051   0.2930    
+cons_price_idx                     17.84073    4.13858   4.311 1.63e-05 ***
+cons_conf_idx                       1.87185    0.32064   5.838 5.33e-09 ***
+euribor3m                          19.49404    4.13546   4.714 2.44e-06 ***
+nr_employed                        -0.40457    0.06968  -5.806 6.45e-09 ***
+lead_score                        421.85250    8.04845  52.414  < 2e-16 ***
+vendorVendor B - Coastal Direct     0.11832    3.60442   0.033   0.9738    
+vendorVendor C - Apex Data Group    1.99555    3.58921   0.556   0.5782    
+vendorVendor D - Northbridge Mktg   0.14155    3.21036   0.044   0.9648    
+vendorVendor E - Fieldstone List    0.87509    2.46211   0.355   0.7223    
+vendorVendor F - Summit Outreach    2.03252    3.64952   0.557   0.5776    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 180.8 on 41173 degrees of freedom
+Multiple R-squared:  0.2016,	Adjusted R-squared:  0.2013 
+F-statistic: 742.5 on 14 and 41173 DF,  p-value: < 2.2e-16
+
