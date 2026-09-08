@@ -1,89 +1,105 @@
 # regression_r2.R
 #
 # Statistical companion to the Python lead-scoring model: a linear
-# regression of realized revenue per lead against lead-level attributes,
-# reported with R^2. This is intentionally NOT the same model as the
-# Python classifier -- it answers a different business question:
-# "how much of the variation in revenue-per-lead is explained by
-# observable attributes at intake?" rather than "will this lead convert?"
+# regression of whether a lead converted (0/1) against intake-time
+# attributes, reported with R^2. This is intentionally NOT the same
+# model as the Python classifier -- it's a separately-fit model, in a
+# different tool, using the SAME raw inputs, to check whether an
+# independent method sees similar signal. It does not use lead_score as
+# a predictor: lead_score is the classifier's own prediction of this
+# exact outcome, so regressing on it wouldn't be an independent check,
+# it would be checking the model against itself.
 #
-# Honest read: R^2 on an individual-level marketing-outcome regression is
-# expected to be modest (most conversion behavior is noise at the
-# individual level). What matters for the business case is which
-# coefficients are significant and their direction/size, not chasing a
-# high R^2 -- reporting a low R^2 as a limitation, not hiding it, is the
+# converted (not revenue_realized) is the target. revenue_realized was
+# dropped from this pipeline entirely (see 01_build_leads.py): it's
+# always exactly a flat dollar amount x converted, so regressing it
+# instead of converted directly would just rescale every coefficient by
+# that same constant and produce an identical R^2 -- it added a dollar
+# sign, not new information.
+#
+# This is a linear probability model (OLS on a 0/1 outcome), not a
+# logistic regression. That's a real, disclosed limitation: predicted
+# values can fall outside [0,1], and it's a linear approximation of
+# something bounded. It's used anyway because it keeps R^2 directly
+# comparable to how this project has talked about it throughout, and
+# linear probability models are standard practice for exactly this kind
+# of "how much variance is explained, and by which predictors" question.
+#
+# Honest read: R^2 on an individual-level marketing outcome is expected
+# to be modest (most conversion behavior is noise at the individual
+# level). What matters for the business case is which coefficients are
+# significant and their direction/size, not chasing a high R^2 --
+# reporting a low R^2 as a limitation, not hiding it, is the
 # senior-analyst signal here.
 #
 # Run from repo root: Rscript r/regression_r2.R
 
-# NOTE: `campaign` and `previous` (used in an earlier version of this
-# script) no longer exist in leads_scored.csv -- both were dropped
-# upstream in 01_build_leads.py during the vendor-plausibility audit
-# (previous/poutcome/pdays describe prior contact history with this
-# institution, which a fresh vendor lead wouldn't have; campaign accrues
-# after intake). The baseline model below reflects that.
-
 df <- read.csv("data/processed/leads_scored.csv", stringsAsFactors = TRUE)
 
-HEADER <- "=== Revenue-per-lead regression ==="
+HEADER <- "=== Lead conversion regression (independent check) ==="
 
-# --- Baseline model: numeric intake attributes + the classifier's own
-# score + vendor. ---
-baseline <- lm(
-  revenue_realized ~ age + emp_var_rate + cons_price_idx + cons_conf_idx +
-    euribor3m + nr_employed + lead_score + vendor,
+# --- Market-only model: do macroeconomic conditions alone explain
+# conversion, before any lead-specific attribute is considered? ---
+market_only <- lm(
+  converted ~ emp_var_rate + cons_price_idx + cons_conf_idx +
+    euribor3m + nr_employed + vendor,
   data = df
 )
 
-# --- Fuller model: adds the categorical intake fields (job, education,
-# channel, month, day_of_week) that the Python classifier also uses. Run
-# side by side, not silently swapped in, to answer directly: does adding
-# these on top of lead_score meaningfully improve the fit, or is it
-# mostly redundant with a score that already encodes them? ---
-fuller <- lm(
-  revenue_realized ~ age + emp_var_rate + cons_price_idx + cons_conf_idx +
-    euribor3m + nr_employed + lead_score + vendor +
-    job + education + channel + month + day_of_week,
+# --- Full model: adds lead-specific intake attributes (age, job,
+# education, channel, month, day_of_week) on top of the market-only
+# model. Run side by side to see how much of the explained variance is
+# "the market" vs. "this specific lead." ---
+full <- lm(
+  converted ~ emp_var_rate + cons_price_idx + cons_conf_idx +
+    euribor3m + nr_employed + vendor +
+    age + job + education + channel + month + day_of_week,
   data = df
 )
 
-s_base <- summary(baseline)
-s_full <- summary(fuller)
+s_market <- summary(market_only)
+s_full <- summary(full)
 
 cat(HEADER, "\n", sep = "")
-cat(sprintf("Baseline model  - R-squared: %.4f | Adjusted R-squared: %.4f\n",
-            s_base$r.squared, s_base$adj.r.squared))
-cat(sprintf("Fuller model    - R-squared: %.4f | Adjusted R-squared: %.4f\n",
+cat(sprintf("Market-only model - R-squared: %.4f | Adjusted R-squared: %.4f\n",
+            s_market$r.squared, s_market$adj.r.squared))
+cat(sprintf("Full model        - R-squared: %.4f | Adjusted R-squared: %.4f\n",
             s_full$r.squared, s_full$adj.r.squared))
 cat(sprintf("N observations: %d\n\n", nrow(df)))
-cat("Read: if the fuller model's adjusted R-squared isn't meaningfully\n")
-cat("higher than the baseline's, that's expected, not a bug -- job/\n")
-cat("education/channel/month/day_of_week are already folded into\n")
-cat("lead_score by the classifier, so adding them again mostly re-states\n")
-cat("information the score already carries rather than adding new signal.\n\n")
+cat("Read: vendor's coefficients are mostly statistically insignificant\n")
+cat("in both models (one vendor is a borderline exception around p=0.03,\n")
+cat("with a tiny effect size -- with 5 vendor dummies tested, one crossing\n")
+cat("p<0.05 by chance is close to what multiple-comparisons noise predicts\n")
+cat("on its own). This isn't a discovery about vendor quality either way:\n")
+cat("vendor is assigned from channel+job+age via a hash with no\n")
+cat("relationship to whether the underlying contact actually converted,\n")
+cat("so vendor having ~no independent effect on conversion here is\n")
+cat("guaranteed by how vendor was constructed, not a finding this\n")
+cat("regression discovers. The vendor-level differences that DO matter\n")
+cat("for the business (conversion rate, ROI, cost per acquisition) are\n")
+cat("real and are reported in sql/vendor_kpis.sql -- this regression\n")
+cat("answers a different question (does intake data explain conversion)\n")
+cat("and vendor's near-insignificance here isn't evidence either way\n")
+cat("about that separate KPI story.\n\n")
 
-cat("Baseline model -- top coefficients by |t value| (excluding intercept):\n")
-coefs <- as.data.frame(s_base$coefficients)
+cat("Full model -- top coefficients by |t value| (excluding intercept):\n")
+coefs <- as.data.frame(s_full$coefficients)
 coefs <- coefs[order(-abs(coefs$`t value`)), ]
 print(head(coefs[rownames(coefs) != "(Intercept)", ], 10))
 
-cat("\n--- lead_score coefficient (the model's own scoring signal) ---\n")
-print(coefs["lead_score", ])
-
 # Save a compact summary for the README / demo talking points. Same
 # header string as the console output above, so grepping for it finds
-# both -- previously these used two different header strings and the
-# console-only one never made it into the file.
+# both.
 sink("output/regression_summary.txt")
 cat(HEADER, "\n", sep = "")
-cat(sprintf("Baseline  - R-squared: %.4f | Adjusted R-squared: %.4f\n",
-            s_base$r.squared, s_base$adj.r.squared))
-cat(sprintf("Fuller    - R-squared: %.4f | Adjusted R-squared: %.4f\n",
+cat(sprintf("Market-only - R-squared: %.4f | Adjusted R-squared: %.4f\n",
+            s_market$r.squared, s_market$adj.r.squared))
+cat(sprintf("Full        - R-squared: %.4f | Adjusted R-squared: %.4f\n",
             s_full$r.squared, s_full$adj.r.squared))
 cat(sprintf("N: %d\n\n", nrow(df)))
-cat("--- Baseline model (reported in README) ---\n")
-print(s_base)
-cat("\n--- Fuller model (categorical intake fields added) ---\n")
+cat("--- Market-only model ---\n")
+print(s_market)
+cat("\n--- Full model (reported in README) ---\n")
 print(s_full)
 sink()
 cat("\nWrote output/regression_summary.txt\n")

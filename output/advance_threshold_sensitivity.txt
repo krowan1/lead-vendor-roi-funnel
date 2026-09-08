@@ -1,0 +1,9 @@
+ADVANCE_QUANTILE sensitivity check
+Does the advanced/not-advanced conversion gap hold at nearby thresholds,
+or is 0.60 doing unseen work? 0.60 is the value actually used.
+
+ advance_quantile  advance_rate  leads_advanced  conversion_rate_advanced  conversion_rate_not_advanced
+              0.5      0.500000           20594                  0.185151                      0.040157
+              0.6      0.400068           16478                  0.215924                      0.043788
+              0.7      0.300039           12358                  0.263392                      0.048040
+              0.8      0.200083            8241                  0.348380                      0.053692

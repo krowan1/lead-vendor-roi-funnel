@@ -1,6 +1,15 @@
 -- vendor_kpis.sql
 -- Run with: duckdb -c ".read sql/vendor_kpis.sql"  (from repo root)
 -- DuckDB reads leads_scored.csv directly, no server/warehouse needed.
+--
+-- revenue_realized is not a stored column: it's always exactly
+-- REVENUE_PER_CONVERSION x converted (see src/01_build_leads.py, the
+-- source of truth for this constant), so it's computed here at query
+-- time as SUM(converted) * 640 rather than materialized per row.
+--
+-- roi_multiple below is revenue / cost (the standard convention: a 3.0x
+-- means $3 back per $1 spent), not (revenue - cost) / cost. Read the
+-- number as "total return," not "profit on top of spend."
 
 CREATE OR REPLACE VIEW leads AS
     SELECT * FROM read_csv_auto('data/processed/leads_scored.csv');
@@ -22,9 +31,9 @@ SELECT
     SUM(converted)                                              AS conversions,
     ROUND(SUM(converted) * 1.0 / COUNT(*), 4)                   AS conversion_rate,
     ROUND(AVG(lead_score), 3)                                   AS avg_lead_score,
-    ROUND(SUM(revenue_realized), 2)                             AS revenue,
-    ROUND(SUM(revenue_realized) - SUM(cost_per_lead), 2)        AS net_return,
-    ROUND((SUM(revenue_realized) - SUM(cost_per_lead))
+    ROUND(SUM(converted) * 640, 2)                              AS revenue,
+    ROUND(SUM(converted) * 640 - SUM(cost_per_lead), 2)         AS net_return,
+    ROUND(SUM(converted) * 640
           / NULLIF(SUM(cost_per_lead), 0), 3)                   AS roi_multiple,
     ROUND(SUM(cost_per_lead) / NULLIF(SUM(converted), 0), 2)    AS cost_per_acquisition
 FROM leads
@@ -54,18 +63,21 @@ SELECT
     ROUND(SUM(cost_per_lead), 2)                          AS spend,
     SUM(converted)                                        AS conversions,
     ROUND(SUM(converted) * 1.0 / COUNT(*), 4)             AS conversion_rate,
-    ROUND((SUM(revenue_realized) - SUM(cost_per_lead))
+    ROUND(SUM(converted) * 640
           / NULLIF(SUM(cost_per_lead), 0), 3)             AS roi_multiple
 FROM leads
 WHERE vendor IN (SELECT vendor FROM ranked);
 
--- 5. Funnel by vendor, for the Sankey diagram (intake -> advanced -> converted)
+-- 5. Funnel by vendor, for the Sankey diagram (intake -> converted / not).
+--    Two stages, not three: whether a lead converted already happened,
+--    independent of whether today's scoring model would flag it
+--    "advanced." See 03_sankey.py and 04_score_lift.py for why that's a
+--    separate chart, not a third stage of this one.
 SELECT
     vendor,
     COUNT(*)                       AS intake,
-    SUM(advanced)                  AS advanced,
-    SUM(CASE WHEN advanced=1 THEN converted ELSE 0 END) AS converted_from_advanced,
-    SUM(CASE WHEN advanced=0 THEN converted ELSE 0 END) AS converted_from_not_advanced
+    SUM(converted)                 AS converted,
+    COUNT(*) - SUM(converted)      AS not_converted
 FROM leads
 GROUP BY vendor
 ORDER BY intake DESC;

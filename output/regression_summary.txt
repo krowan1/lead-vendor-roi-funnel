@@ -1,104 +1,100 @@
-=== Revenue-per-lead regression ===
-Baseline  - R-squared: 0.1824 | Adjusted R-squared: 0.1822
-Fuller    - R-squared: 0.1859 | Adjusted R-squared: 0.1850
+=== Lead conversion regression (independent check) ===
+Market-only - R-squared: 0.1384 | Adjusted R-squared: 0.1382
+Full        - R-squared: 0.1857 | Adjusted R-squared: 0.1848
 N: 41188
 
---- Baseline model (reported in README) ---
+--- Market-only model ---
 
 Call:
-lm(formula = revenue_realized ~ age + emp_var_rate + cons_price_idx + 
-    cons_conf_idx + euribor3m + nr_employed + lead_score + vendor, 
-    data = df)
+lm(formula = converted ~ emp_var_rate + cons_price_idx + cons_conf_idx + 
+    euribor3m + nr_employed + vendor, data = df)
 
 Residuals:
-    Min      1Q  Median      3Q     Max 
--363.63  -53.81  -32.79  -17.42  707.59 
-
-Coefficients:
-                                   Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                       796.78464  651.81762   1.222   0.2216    
-age                                 0.16125    0.08743   1.844   0.0651 .  
-emp_var_rate                       -2.50809    3.31745  -0.756   0.4496    
-cons_price_idx                     19.08314    3.95097   4.830 1.37e-06 ***
-cons_conf_idx                       2.04846    0.31937   6.414 1.43e-10 ***
-euribor3m                          18.96517    4.17310   4.545 5.52e-06 ***
-nr_employed                        -0.51455    0.06958  -7.395 1.44e-13 ***
-lead_score                        397.69443    8.46324  46.991  < 2e-16 ***
-vendorVendor B - Coastal Direct    -3.04820    3.11666  -0.978   0.3281    
-vendorVendor C - Apex Data Group   -7.21704    3.11388  -2.318   0.0205 *  
-vendorVendor D - Northbridge Mktg  -1.46277    3.07902  -0.475   0.6347    
-vendorVendor E - Fieldstone List   -2.07569    3.40288  -0.610   0.5419    
-vendorVendor F - Summit Outreach    3.47235    3.16956   1.096   0.2733    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 183 on 41175 degrees of freedom
-Multiple R-squared:  0.1824,	Adjusted R-squared:  0.1822 
-F-statistic: 765.5 on 12 and 41175 DF,  p-value: < 2.2e-16
-
-
---- Fuller model (categorical intake fields added) ---
-
-Call:
-lm(formula = revenue_realized ~ age + emp_var_rate + cons_price_idx + 
-    cons_conf_idx + euribor3m + nr_employed + lead_score + vendor + 
-    job + education + channel + month + day_of_week, data = df)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--408.17  -54.23  -34.00  -18.83  702.24 
+     Min       1Q   Median       3Q      Max 
+-0.48177 -0.11457 -0.04802 -0.00588  1.00620 
 
 Coefficients:
                                     Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                       -1.207e+04  2.886e+03  -4.183 2.89e-05 ***
-age                                1.018e-01  1.151e-01   0.885 0.376383    
-emp_var_rate                      -8.013e+01  1.984e+01  -4.038 5.41e-05 ***
-cons_price_idx                     1.318e+02  2.536e+01   5.199 2.01e-07 ***
-cons_conf_idx                      3.450e+00  5.548e-01   6.217 5.10e-10 ***
-euribor3m                          2.519e+01  9.284e+00   2.713 0.006668 ** 
-nr_employed                       -4.317e-02  1.763e-01  -0.245 0.806527    
-lead_score                         1.976e+02  6.384e+01   3.095 0.001970 ** 
-vendorVendor B - Coastal Direct   -3.553e+00  3.153e+00  -1.127 0.259827    
-vendorVendor C - Apex Data Group  -6.930e+00  3.123e+00  -2.219 0.026488 *  
-vendorVendor D - Northbridge Mktg -1.596e+00  3.087e+00  -0.517 0.605064    
-vendorVendor E - Fieldstone List  -1.975e+00  3.430e+00  -0.576 0.564673    
-vendorVendor F - Summit Outreach   3.644e+00  3.185e+00   1.144 0.252639    
-jobblue-collar                    -4.699e+00  3.533e+00  -1.330 0.183559    
-jobentrepreneur                   -6.255e+00  5.205e+00  -1.202 0.229474    
-jobhousemaid                      -2.332e+00  6.270e+00  -0.372 0.709921    
-jobmanagement                     -3.348e+00  3.922e+00  -0.854 0.393249    
-jobretired                         3.684e+00  7.333e+00   0.502 0.615367    
-jobself-employed                  -4.736e+00  5.251e+00  -0.902 0.367092    
-jobservices                       -4.135e+00  3.854e+00  -1.073 0.283279    
-jobstudent                         1.743e+01  7.301e+00   2.387 0.016974 *  
-jobtechnician                     -6.113e-01  3.286e+00  -0.186 0.852433    
-jobunemployed                      1.010e+00  6.116e+00   0.165 0.868790    
-jobunknown                        -8.306e+00  1.047e+01  -0.793 0.427738    
-educationbasic.6y                 -2.956e+00  5.459e+00  -0.541 0.588215    
-educationbasic.9y                 -8.214e-01  3.817e+00  -0.215 0.829604    
-educationhigh.school              -1.921e+00  4.064e+00  -0.473 0.636453    
-educationilliterate                4.920e+01  4.363e+01   1.127 0.259538    
-educationprofessional.course       3.476e+00  4.450e+00   0.781 0.434720    
-educationuniversity.degree         7.860e-01  4.460e+00   0.176 0.860116    
-educationunknown                  -5.647e-01  5.641e+00  -0.100 0.920269    
-channeloutbound                   -2.795e+01  8.467e+00  -3.302 0.000962 ***
-monthaug                           5.764e+01  1.001e+01   5.756 8.68e-09 ***
-monthdec                           7.350e+01  1.533e+01   4.796 1.63e-06 ***
-monthjul                           2.530e+01  5.111e+00   4.951 7.42e-07 ***
-monthjun                          -2.058e+01  1.096e+01  -1.877 0.060569 .  
-monthmar                           1.382e+02  1.809e+01   7.641 2.20e-14 ***
-monthmay                           2.072e+00  9.527e+00   0.217 0.827845    
-monthnov                           1.211e+01  9.801e+00   1.235 0.216767    
-monthoct                           9.656e+00  9.533e+00   1.013 0.311142    
-monthsep                           1.785e+01  1.161e+01   1.537 0.124306    
-day_of_weekmon                    -6.032e+00  3.248e+00  -1.857 0.063322 .  
-day_of_weekthu                     5.493e+00  2.876e+00   1.910 0.056147 .  
-day_of_weektue                     5.186e+00  2.943e+00   1.762 0.078093 .  
-day_of_weekwed                     3.743e+00  3.411e+00   1.097 0.272516    
+(Intercept)                        0.7248302  1.0453585   0.693   0.4881    
+emp_var_rate                      -0.0312952  0.0052872  -5.919 3.26e-09 ***
+cons_price_idx                     0.0697122  0.0062770  11.106  < 2e-16 ***
+cons_conf_idx                      0.0071538  0.0005038  14.200  < 2e-16 ***
+euribor3m                          0.0023929  0.0066660   0.359   0.7196    
+nr_employed                       -0.0013256  0.0001110 -11.941  < 2e-16 ***
+vendorVendor B - Coastal Direct   -0.0053643  0.0049974  -1.073   0.2831    
+vendorVendor C - Apex Data Group  -0.0105999  0.0049944  -2.122   0.0338 *  
+vendorVendor D - Northbridge Mktg  0.0008243  0.0049380   0.167   0.8674    
+vendorVendor E - Fieldstone List  -0.0010730  0.0054572  -0.197   0.8441    
+vendorVendor F - Summit Outreach   0.0014677  0.0050798   0.289   0.7726    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 182.7 on 41143 degrees of freedom
-Multiple R-squared:  0.1859,	Adjusted R-squared:  0.185 
-F-statistic: 213.5 on 44 and 41143 DF,  p-value: < 2.2e-16
+Residual standard error: 0.2935 on 41177 degrees of freedom
+Multiple R-squared:  0.1384,	Adjusted R-squared:  0.1382 
+F-statistic: 661.6 on 10 and 41177 DF,  p-value: < 2.2e-16
+
+
+--- Full model (reported in README) ---
+
+Call:
+lm(formula = converted ~ emp_var_rate + cons_price_idx + cons_conf_idx + 
+    euribor3m + nr_employed + vendor + age + job + education + 
+    channel + month + day_of_week, data = df)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.67219 -0.08423 -0.05390 -0.02952  1.10743 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                       -2.795e+01  3.446e+00  -8.113 5.08e-16 ***
+emp_var_rate                      -2.111e-01  1.381e-02 -15.288  < 2e-16 ***
+cons_price_idx                     3.060e-01  2.290e-02  13.364  < 2e-16 ***
+cons_conf_idx                      6.494e-03  7.902e-04   8.219  < 2e-16 ***
+euribor3m                          6.721e-02  1.138e-02   5.907 3.51e-09 ***
+nr_employed                       -1.146e-04  2.750e-04  -0.417 0.677018    
+vendorVendor B - Coastal Direct   -5.602e-03  4.928e-03  -1.137 0.255615    
+vendorVendor C - Apex Data Group  -1.096e-02  4.880e-03  -2.246 0.024684 *  
+vendorVendor D - Northbridge Mktg -2.471e-03  4.824e-03  -0.512 0.608462    
+vendorVendor E - Fieldstone List  -2.996e-03  5.360e-03  -0.559 0.576124    
+vendorVendor F - Summit Outreach   5.682e-03  4.977e-03   1.142 0.253631    
+age                               -8.244e-05  1.621e-04  -0.509 0.611006    
+jobblue-collar                    -1.277e-02  5.235e-03  -2.439 0.014721 *  
+jobentrepreneur                   -8.539e-03  8.124e-03  -1.051 0.293190    
+jobhousemaid                      -8.106e-03  9.691e-03  -0.836 0.402894    
+jobmanagement                     -6.149e-03  6.122e-03  -1.005 0.315138    
+jobretired                         2.904e-02  8.644e-03   3.359 0.000783 ***
+jobself-employed                  -8.749e-03  8.194e-03  -1.068 0.285614    
+jobservices                       -1.230e-02  5.719e-03  -2.150 0.031532 *  
+jobstudent                         3.988e-02  1.065e-02   3.744 0.000181 ***
+jobtechnician                     -4.114e-05  5.127e-03  -0.008 0.993597    
+jobunemployed                     -1.175e-04  9.542e-03  -0.012 0.990176    
+jobunknown                        -9.567e-03  1.633e-02  -0.586 0.557975    
+educationbasic.6y                  7.681e-03  7.549e-03   1.018 0.308881    
+educationbasic.9y                 -1.463e-03  5.964e-03  -0.245 0.806176    
+educationhigh.school               1.819e-03  6.156e-03   0.295 0.767702    
+educationilliterate                1.073e-01  6.747e-02   1.591 0.111662    
+educationprofessional.course       3.419e-03  6.924e-03   0.494 0.621414    
+educationuniversity.degree         1.063e-02  6.272e-03   1.695 0.089991 .  
+educationunknown                   6.510e-03  8.486e-03   0.767 0.442963    
+channelmobile-sourced              8.091e-02  5.505e-03  14.697  < 2e-16 ***
+monthaug                           1.183e-01  1.271e-02   9.306  < 2e-16 ***
+monthdec                           1.298e-01  2.346e-02   5.533 3.17e-08 ***
+monthjul                           4.460e-02  7.818e-03   5.705 1.17e-08 ***
+monthjun                          -6.782e-02  1.268e-02  -5.351 8.81e-08 ***
+monthmar                           2.886e-01  1.579e-02  18.275  < 2e-16 ***
+monthmay                          -3.673e-02  7.406e-03  -4.960 7.09e-07 ***
+monthnov                          -1.839e-02  9.448e-03  -1.946 0.051608 .  
+monthoct                           9.567e-03  1.479e-02   0.647 0.517721    
+monthsep                           3.313e-02  1.807e-02   1.833 0.066753 .  
+day_of_weekmon                    -1.677e-02  4.486e-03  -3.739 0.000185 ***
+day_of_weekthu                     9.861e-03  4.475e-03   2.204 0.027552 *  
+day_of_weektue                     6.135e-03  4.555e-03   1.347 0.178038    
+day_of_weekwed                     1.449e-02  4.540e-03   3.192 0.001413 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.2855 on 41144 degrees of freedom
+Multiple R-squared:  0.1857,	Adjusted R-squared:  0.1848 
+F-statistic: 218.2 on 43 and 41144 DF,  p-value: < 2.2e-16
 
